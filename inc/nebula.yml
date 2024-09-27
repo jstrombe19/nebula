@@ -1,0 +1,18 @@
+# modifications in this file require re-generation of associated cpp/hpp files throughout the project
+# re-run yml2cpp.py in the tools directory to complete the re-generation
+
+classes:
+  - name: MyClass
+    members:
+      - name: x
+        type: int
+      - name: y 
+        type: double
+    methods:
+      - name: add
+        return_type: int
+        parameters:
+          - name: a
+            type: int
+          - name: b
+            type: int
