@@ -1,6 +1,4 @@
 # this utility generates cpp/hpp files based on human-readable yml config files
-
-
 import yaml
 
 with open('../inc/nebula.yml', 'r') as file:
@@ -42,3 +40,13 @@ hpp_content = generate_hpp(data)
 with open('../inc/myclass.hpp', 'w') as file:
   file.write(hpp_content)
 
+
+def generate_cpp(data):
+  cpp_content = ""
+
+  return cpp_content
+
+cpp_content = generate_cpp(data)
+
+with open('../src/myclass.cpp', 'w') as file:
+  file.write(cpp_content)

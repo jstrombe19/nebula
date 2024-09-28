@@ -2,4 +2,9 @@ cmake_minimum_required(VERSION 3.15)
 
 project(nebula VERSION 0.0.1)
 
+find_package(zyre REQUIRED)
+
+
 add_executable(nebula src/main.cpp)
+
+target_link_libraries(nebula zyre::zyre)
