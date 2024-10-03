@@ -16,3 +16,17 @@ classes:
             type: int
           - name: b
             type: int
+  - name: MyClass2
+    members:
+      - name: x
+        type: int
+      - name: y 
+        type: double
+    methods:
+      - name: add
+        return_type: int
+        parameters:
+          - name: a
+            type: int
+          - name: b
+            type: int
