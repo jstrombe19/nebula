@@ -7,17 +7,18 @@ with open('../inc/nebula.yml', 'r') as file:
 
 def generate_hpp(class_data):
   hpp_content = ""
-  hpp_content += "// WARNING::Auto-generated file; do not modify this file! If change is necessary, update the corresponding yml and re-generate!\n"
+  hpp_content += "// WARNING::Auto-generated file; do not modify this file! \n// If change is necessary, update the corresponding yml and re-generate!\n"
   hpp_content += "#pragma once\n\n"
 
 
   # for class_data in data['classes']:
   class_name = class_data['name']
-  upper_class_name = class_name.upper()
+  screened_class_name = class_name.replace(" ", "")
+  upper_class_name = class_name.replace(" ", "_").upper()
   
   hpp_content += "#ifndef _" + upper_class_name + "_H_\n"
   hpp_content += "#define _" + upper_class_name + "_H_\n\n"
-  hpp_content += f"class {class_name} {{\n"
+  hpp_content += f"class {screened_class_name} {{\n"
   
   # Add members
   hpp_content += "public:\n"
@@ -26,7 +27,7 @@ def generate_hpp(class_data):
 
   # Add methods
   for method in class_data['methods']:
-    hpp_content += f"     {method['return_type']} {method['name']}("
+    hpp_content += f"     virtual {method['return_type']} {method['name']}("
     params = ", ".join([f"{param['type']} {param['name']}" for param in method['parameters']])  
     hpp_content += f"{params});\n"
 
@@ -39,7 +40,7 @@ def write_hpp(data):
   for classdata in data['classes']:
     hpp_content = generate_hpp(classdata)
 
-    classname = '../inc/' + classdata['name'].lower() + '.hpp'
+    classname = '../inc/' + classdata['name'].lower().replace(" ", "_") + '.hpp'
     with open(classname, 'w') as file:
       file.write(hpp_content)
 

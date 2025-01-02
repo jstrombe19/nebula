@@ -2,21 +2,31 @@
 # re-run yml2cpp.py in the tools directory to complete the re-generation
 
 classes:
-  - name: MyClass
+  - name: Camera Interface
     members:
       - name: x
         type: int
       - name: y 
         type: double
     methods:
-      - name: add
+      - name: initialize
         return_type: int
         parameters:
           - name: a
             type: int
           - name: b
             type: int
-  - name: MyClass2
+      - name: setExposure
+        return_type: int
+        parameters: 
+          - name: exposure
+            type: int
+      - name: setGain
+        return_type: int
+        parameters:
+          - name: gain
+            type: int
+  - name: DemoClass
     members:
       - name: x
         type: int

@@ -1,4 +1,5 @@
-// WARNING::Auto-generated file; do not modify this file! If change is necessary, update the corresponding yml and re-generate!
+// WARNING::Auto-generated file; do not modify this file! 
+// If change is necessary, update the corresponding yml and re-generate!
 #pragma once
 
 #ifndef _MYCLASS_H_
