@@ -3,6 +3,7 @@
 
 classes:
   - name: Camera Interface
+    virtual: true
     members:
       - name: x
         type: int
@@ -27,6 +28,7 @@ classes:
           - name: gain
             type: int
   - name: DemoClass
+    virtual: false
     members:
       - name: x
         type: int
