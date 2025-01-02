@@ -9,9 +9,9 @@ class CameraInterface {
 public:
      int x;
      double y;
-     virtual int initialize(int a, int b);
-     virtual int setExposure(int exposure);
-     virtual int setGain(int gain);
+     virtual int initialize(int a, int b) = 0;
+     virtual int setExposure(int exposure) = 0;
+     virtual int setGain(int gain) = 0;
 };
 
 #endif

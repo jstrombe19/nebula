@@ -29,7 +29,7 @@ def generate_hpp(class_data):
   for method in class_data['methods']:
     hpp_content += f"     virtual {method['return_type']} {method['name']}("
     params = ", ".join([f"{param['type']} {param['name']}" for param in method['parameters']])  
-    hpp_content += f"{params});\n"
+    hpp_content += f"{params}) = 0;\n"
 
   hpp_content += "};\n\n"
 

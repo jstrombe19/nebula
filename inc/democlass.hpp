@@ -9,7 +9,7 @@ class DemoClass {
 public:
      int x;
      double y;
-     virtual int add(int a, int b);
+     virtual int add(int a, int b) = 0;
 };
 
 #endif
