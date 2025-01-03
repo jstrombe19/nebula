@@ -8,6 +8,8 @@ project(nebula VERSION 0.0.1)
 set(ZYRE_INCLUDE_DIR "/usr/local/include")
 set(ZYRE_LIBRARY_DIR "/usr/local/lib")
 
+include_directories($CMAKE_SOURCE_DIR/inc)
+include_directories($CMAKE_SOURCE_DIR/inc/cameras)
 include_directories(${ZYRE_INCLUDE_DIR})
 
 link_directories(${ZYRE_LIBRARY_DIR})

@@ -27,6 +27,12 @@ classes:
         parameters:
           - name: gain
             type: int
+    derived_classes:
+      - name: FLIR Blackfly S
+        headers:
+          - <Spinnaker.h>
+          - <SpinGenApi/SpinnakerGenApi.h>
+        methods: []
   - name: DemoClass
     virtual: false
     members:

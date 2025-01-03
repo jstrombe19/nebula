@@ -1,118 +1,134 @@
-import os
-import argparse
-import re
+# this utility generates cpp/hpp files based on human-readable yml config files
+import yaml
 
-def parse_virtual_class(class_content):
-    """
-    Parses a virtual class and extracts method declarations.
-    :param class_content: Content of the virtual class.
-    :return: Class name and a list of method declarations.
-    """
-    class_pattern = r'class\s+(\w+)\s*\{'
-    method_pattern = r'virtual\s+([\w<>:&*\s]+)\s+(\w+)\(([^)]*)\)\s*=\s*0\s*;'
+with open('../inc/nebula.yml', 'r') as file:
+    data = yaml.safe_load(file)
 
-    class_match = re.search(class_pattern, class_content)
-    if not class_match:
-        raise ValueError("Could not find a valid class declaration.")
+def generate_hpp(class_data):
+    hpp_content = ""
+    hpp_content += "// WARNING::Auto-generated file; do not modify this file! \n// If change is necessary, update the corresponding yml and re-generate!\n"
+    hpp_content += "#pragma once\n\n"
 
-    class_name = class_match.group(1)
-    methods = re.findall(method_pattern, class_content)
+    class_name = class_data['name']
+    screened_class_name = class_name.replace(" ", "")
+    upper_class_name = class_name.replace(" ", "_").upper()
 
-    return class_name, methods
+    hpp_content += "#ifndef _" + upper_class_name + "_H_\n"
+    hpp_content += "#define _" + upper_class_name + "_H_\n\n"
 
-def generate_header(base_class_name, derived_class_name, methods):
-    """
-    Generates the header file content for the derived implementation class.
-    :param base_class_name: Name of the virtual class.
-    :param derived_class_name: Name of the new derived class.
-    :param methods: List of method declarations.
-    :return: Header file content as a string.
-    """
-    header_guard = f"{derived_class_name.upper()}_HPP"
+    # Include additional headers if specified
+    additional_headers = class_data.get('headers', [])
+    for header in additional_headers:
+        hpp_content += f"#include \"{header}\"\n"
+    hpp_content += "\n"
 
-    header_content = [
-        f"#ifndef {header_guard}",
-        f"#define {header_guard}",
-        "",
-        f"#include \"{base_class_name}.hpp\"",
-        "",
-        f"class {derived_class_name} : public {base_class_name} {{",
-        "public:",
-        f"    {derived_class_name}() = default;",
-        f"    ~{derived_class_name}() override = default;",
-        "",
-    ]
+    hpp_content += f"class {screened_class_name} {{\n"
 
-    for return_type, method_name, args in methods:
-        header_content.append(f"    {return_type} {method_name}({args}) override;")
+    # Add members
+    hpp_content += "public:\n"
+    for member in class_data['members']:
+        hpp_content += f"     {member['type']} {member['name']};\n"
 
-    header_content.append("};")
-    header_content.append("")
-    header_content.append(f"#endif // {header_guard}")
+    # Check if the class is marked as virtual
+    is_virtual_class = class_data.get('virtual', False)
 
-    return "\n".join(header_content)
+    # Add methods
+    for method in class_data['methods']:
+        if is_virtual_class:
+            hpp_content += f"     virtual {method['return_type']} {method['name']}("  # Virtual and pure virtual
+        else:
+            hpp_content += f"     {method['return_type']} {method['name']}("  # Regular method
+        params = ", ".join([f"{param['type']} {param['name']}" for param in method['parameters']])
+        hpp_content += f"{params})"
+        hpp_content += " = 0;\n" if is_virtual_class else ";\n"
 
-def generate_cpp(derived_class_name, methods):
-    """
-    Generates the cpp file content for the derived implementation class.
-    :param derived_class_name: Name of the new derived class.
-    :param methods: List of method declarations.
-    :return: CPP file content as a string.
-    """
+    hpp_content += "};\n\n"
+    hpp_content += "#endif"
+    return hpp_content
 
-    cpp_content = [
-        f"#include \"{derived_class_name}.hpp\"",
-        ""
-    ]
+def write_hpp(data, header_dir):
+    for classdata in data['classes']:
+        hpp_content = generate_hpp(classdata)
 
-    for return_type, method_name, args in methods:
-        cpp_content.append(f"{return_type} {derived_class_name}::{method_name}({args}) {{")
-        cpp_content.append("    // TODO: Implement this method")
-        if return_type.strip() != "void":
-            cpp_content.append(f"    return {return_type.strip()}();")
-        cpp_content.append("}")
-        cpp_content.append("")
+        classname = f"{header_dir}/{classdata['name'].lower().replace(' ', '_')}.hpp"
+        with open(classname, 'w') as file:
+            file.write(hpp_content)
 
-    return "\n".join(cpp_content)
+def generate_cpp(data):
+    cpp_content = ""
+    for class_data in data['classes']:
+        cpp_content += f"#include \"../inc/{class_data['name'].lower().replace(' ', '_')}.hpp\"\n\n"
 
-def write_files(header_dir, cpp_dir, derived_class_name, header_content, cpp_content):
-    """
-    Writes the generated header and cpp content to files.
-    :param header_dir: Directory to write the header file.
-    :param cpp_dir: Directory to write the cpp file.
-    :param derived_class_name: Name of the new derived class.
-    :param header_content: Content for the header file.
-    :param cpp_content: Content for the cpp file.
-    """
-    os.makedirs(header_dir, exist_ok=True)
-    os.makedirs(cpp_dir, exist_ok=True)
+        for method in class_data['methods']:
+            params = ", ".join([f"{param['type']} {param['name']}" for param in method['parameters']])
+            cpp_content += f"{method['return_type']} {class_data['name']}::{method['name']}({params}) {{\n"
+            cpp_content += "    // TODO: Implement this method\n"
+            if method['return_type'] != "void":
+                cpp_content += f"    return {method['return_type']}();\n"
+            cpp_content += "}\n\n"
 
-    header_path = os.path.join(header_dir, f"{derived_class_name}.hpp")
-    cpp_path = os.path.join(cpp_dir, f"{derived_class_name}.cpp")
+    return cpp_content
 
-    with open(header_path, "w") as header_file:
-        header_file.write(header_content)
+def write_cpp(data, source_dir):
+    cpp_content = generate_cpp(data)
+    with open(f"{source_dir}/auto_generated.cpp", 'w') as file:
+        file.write(cpp_content)
 
-    with open(cpp_path, "w") as cpp_file:
-        cpp_file.write(cpp_content)
+def generate_derived_hpp(base_class_name, derived_class):
+    hpp_content = f"#pragma once\n\n"
+    hpp_content += f"#include \"../inc/{base_class_name.lower().replace(' ', '_')}.hpp\"\n"
+    for header in derived_class.get('headers', []):
+        hpp_content += f"#include \"{header}\"\n"
+    hpp_content += "\n"
 
-def main():
-    parser = argparse.ArgumentParser(description="Generate stub files for a virtual class.")
-    parser.add_argument("virtual_class_file", help="Path to the file containing the virtual class.")
-    parser.add_argument("--header_dir", default="./include", help="Directory to save the header file.")
-    parser.add_argument("--cpp_dir", default="./src", help="Directory to save the cpp file.")
-    parser.add_argument("--derived_class_name", required=True, help="Name of the new derived class.")
+    derived_name = derived_class['name']
+    hpp_content += f"class {derived_name} : public {base_class_name} {{\n"
+    hpp_content += "public:\n"
+    hpp_content += f"    {derived_name}() = default;\n"
+    hpp_content += f"    ~{derived_name}() override = default;\n\n"
 
-    args = parser.parse_args()
+    for method in derived_class.get('methods', []):
+        params = ", ".join([f"{param['type']} {param['name']}" for param in method.get('parameters', [])])
+        hpp_content += f"    {method['return_type']} {method['name']}({params}) override;\n"
+    hpp_content += "};\n\n"
+    return hpp_content
 
-    with open(args.virtual_class_file, "r") as file:
-        class_content = file.read()
+def write_derived_hpp(base_class_name, derived_classes, header_dir):
+    for derived_class in derived_classes:
+        hpp_content = generate_derived_hpp(base_class_name, derived_class)
+        derived_filename = f"{header_dir}/{derived_class['name'].lower().replace(' ', '_')}.hpp"
+        with open(derived_filename, 'w') as file:
+            file.write(hpp_content)
 
-    base_class_name, methods = parse_virtual_class(class_content)
-    header_content = generate_header(base_class_name, args.derived_class_name, methods)
-    cpp_content = generate_cpp(args.derived_class_name, methods)
+def generate_derived_cpp(derived_class):
+    cpp_content = f"#include \"../inc/{derived_class['name'].lower().replace(' ', '_')}.hpp\"\n\n"
+    for header in derived_class.get('headers', []):
+        cpp_content += f"#include \"{header}\"\n"
+    cpp_content += "\n"
 
-    write_files(args.header_dir, args.cpp_dir, args.derived_class_name, header_content, cpp_content)
+    for method in derived_class.get('methods', []):
+        params = ", ".join([f"{param['type']} {param['name']}" for param in method.get('parameters', [])])
+        cpp_content += f"{method['return_type']} {derived_class['name']}::{method['name']}({params}) {{\n"
+        cpp_content += "    // TODO: Implement this method\n"
+        if method['return_type'] != "void":
+            cpp_content += f"    return {method['return_type']}();\n"
+        cpp_content += "}\n\n"
+    return cpp_content
 
-if __name__ == "__main__":
-    main()
+def write_derived_cpp(derived_classes, source_dir):
+    for derived_class in derived_classes:
+        cpp_content = generate_derived_cpp(derived_class)
+        derived_filename = f"{source_dir}/{derived_class['name'].lower().replace(' ', '_')}.cpp"
+        with open(derived_filename, 'w') as file:
+            file.write(cpp_content)
+
+def main(data, header_dir="../inc", source_dir="../src"):
+    write_hpp(data, header_dir)
+    write_cpp(data, source_dir)
+    for class_data in data['classes']:
+        derived_classes = class_data.get('derived_classes', [])
+        write_derived_hpp(class_data['name'], derived_classes, header_dir)
+        write_derived_cpp(derived_classes, source_dir)
+
+# Run the script
+main(data)
