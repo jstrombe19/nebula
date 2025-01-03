@@ -8,11 +8,16 @@ project(nebula VERSION 0.0.1)
 set(ZYRE_INCLUDE_DIR "/usr/local/include")
 set(ZYRE_LIBRARY_DIR "/usr/local/lib")
 
+set(SPINNAKER_INCLUDE_DIR "/opt/spinnaker/include")
+set(SPINNAKER_LIBRARY_DIR "/opt/spinnaker/lib")
+
 include_directories($CMAKE_SOURCE_DIR/inc)
 include_directories($CMAKE_SOURCE_DIR/inc/cameras)
 include_directories(${ZYRE_INCLUDE_DIR})
+include_directories(${SPINNAKER_INCLUDE_DIR})
 
 link_directories(${ZYRE_LIBRARY_DIR})
+link_directories(${SPINNAKER_LIBRARY_DIR})
 
 add_executable(nebula src/main.cpp)
 
